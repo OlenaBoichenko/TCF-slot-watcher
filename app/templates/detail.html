@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+{% set m = monitor %}
+<div class="row-between">
+  <h1>{{ m['name'] }}</h1>
+  <div class="row">
+    <a class="btn" href="/monitors/{{ m['id'] }}/edit">Edit</a>
+    <form method="post" action="/monitors/{{ m['id'] }}/check" class="inline">
+      <button class="btn primary" type="submit">Check now</button>
+    </form>
+  </div>
+</div>
+
+<p><a href="{{ m['url'] }}" target="_blank" rel="noopener">{{ m['url'] }}</a></p>
+
+<div class="card">
+  <dl class="kv">
+    <dt>Status</dt><dd>{{ 'running' if m['enabled'] else 'paused' }}</dd>
+    <dt>Mode</dt><dd><code>{{ m['mode'] }}</code></dd>
+    <dt>Expression</dt><dd><code>{{ m['expression'] }}</code></dd>
+    <dt>Interval</dt><dd>{{ m['interval_seconds'] }} s</dd>
+    <dt>Last check</dt><dd>{{ m['last_checked_at'] or '—' }} (UTC)</dd>
+    <dt>Slots found</dt><dd>{{ m['last_found_count'] }}</dd>
+    {% if m['last_error'] %}<dt>Error</dt><dd class="err">{{ m['last_error'] }}</dd>{% endif %}
+  </dl>
+</div>
+
+<h2>Check log</h2>
+<table class="grid">
+  <tr><th>Time (UTC)</th><th>Result</th><th>Found</th><th>New</th><th>Response time</th><th>Note</th></tr>
+  {% for entry in logs %}
+  <tr>
+    <td class="small">{{ entry['checked_at'] }}</td>
+    <td class="small">{{ '✅' if entry['ok'] else '❌' }} {{ entry['status_code'] or '' }}</td>
+    <td class="small">{{ entry['found_count'] }}</td>
+    <td class="small">{% if entry['new_count'] %}<strong class="ok">{{ entry['new_count'] }}</strong>{% else %}0{% endif %}</td>
+    <td class="small">{{ entry['duration_ms'] }} ms</td>
+    <td class="small">{{ entry['error'] or entry['sample'] }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">No checks yet.</td></tr>
+  {% endfor %}
+</table>
+
+<h2>Seen slots <span class="muted small">(no repeat notifications for these)</span></h2>
+<ul class="slots">
+  {% for slot in seen %}
+  <li><code>{{ slot['slot_key'] }}</code> <span class="muted small">seen {{ slot['last_seen_at'] }}</span></li>
+  {% else %}
+  <li class="muted">Nothing found yet.</li>
+  {% endfor %}
+</ul>
+
+<div class="row">
+  <form method="post" action="/monitors/{{ m['id'] }}/forget" class="inline">
+    <button class="btn" type="submit">Forget seen slots</button>
+  </form>
+  <form method="post" action="/monitors/{{ m['id'] }}/delete" class="inline"
+        onsubmit="return confirm('Delete this monitor?')">
+    <button class="btn danger" type="submit">Delete monitor</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TCF Slot Watcher{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="/">⏱ Slot Watcher</a>
+  <nav>
+    <a href="/">Monitors</a>
+    <a href="/playground">Playground</a>
+    <form method="post" action="/test-notification" class="inline">
+      <button class="link" type="submit">Test notification</button>
+    </form>
+  </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+  Checks run while the server is running. Each monitor has its own interval.
+</footer>
+</body>
+</html>

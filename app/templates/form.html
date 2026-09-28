@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+{% set m = monitor %}
+<h1>{{ 'Monitor: ' + m['name'] if m else 'New monitor' }}</h1>
+
+<form method="post" action="{{ '/monitors/' ~ m['id'] if m else '/monitors' }}" class="card">
+  <label>Name
+    <input name="name" required value="{{ m['name'] if m else '' }}"
+           placeholder="TCF Victoria — seat available">
+  </label>
+
+  <label>Page URL
+    <input name="url" required type="url" value="{{ m['url'] if m else '' }}"
+           placeholder="https://www.afvictoria.ca/language/exams/tcf/?s8-datatable1_rows=60">
+  </label>
+
+  <div class="two">
+    <label>Method
+      <select name="method">
+        {% for method in ['GET', 'POST'] %}
+        <option value="{{ method }}" {{ 'selected' if m and m['method'] == method }}>{{ method }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Check interval, seconds
+      <input name="interval_seconds" type="number" min="30" step="30"
+             value="{{ m['interval_seconds'] if m else 300 }}">
+    </label>
+  </div>
+
+  <label>Extraction mode
+    <select name="mode">
+      {% for key, description in modes.items() %}
+      <option value="{{ key }}" {{ 'selected' if m and m['mode'] == key }}>{{ key }} — {{ description }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Expression (selector / JSON path / regex / substring)
+    <textarea name="expression" rows="3">{{ m['expression'] if m else '' }}</textarea>
+  </label>
+
+  <label>Ignore results matching regex <span class="muted">(optional)</span>
+    <input name="exclude_pattern" value="{{ m['exclude_pattern'] if m else '' }}"
+           placeholder="SOLD OUT|Closed">
+  </label>
+
+  <details>
+    <summary>Advanced: headers, request body, cooldown</summary>
+    <label>Headers — JSON or <code>Name: value</code> lines
+      <textarea name="request_headers" rows="3" placeholder='{"Cookie": "session=..."}'>{{ m['request_headers'] if m else '' }}</textarea>
+    </label>
+    <label>Request body (for POST)
+      <textarea name="request_body" rows="3">{{ m['request_body'] if m else '' }}</textarea>
+    </label>
+    <label>Notification cooldown, seconds <span class="muted">(0 — always send)</span>
+      <input name="notify_cooldown_seconds" type="number" min="0"
+             value="{{ m['notify_cooldown_seconds'] if m else 0 }}">
+    </label>
+  </details>
+
+  <label class="checkbox">
+    <input type="checkbox" name="enabled" {{ 'checked' if (not m) or m['enabled'] }}>
+    Monitor enabled
+  </label>
+
+  <label class="checkbox">
+    <input type="checkbox" name="alert_on_empty" {{ 'checked' if m and m['alert_on_empty'] }}>
+    Alert if results become empty
+    <span class="muted small">— for monitors that normally always find something;
+      empty results mean the page layout changed and the selector broke.</span>
+  </label>
+
+  <div class="row">
+    <button class="btn primary" type="submit">Save</button>
+    <a class="btn" href="{{ '/monitors/' ~ m['id'] if m else '/' }}">Cancel</a>
+  </div>
+</form>
+
+<p class="muted">Not sure about the selector? Try it in the <a href="/playground">playground</a>
+  first — nothing is saved.</p>
+{% endblock %}

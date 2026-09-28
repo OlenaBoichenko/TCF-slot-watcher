@@ -1,0 +1,10 @@
+.venv/
+data/
+__pycache__/
+*.pyc
+.env
+.git/
+README.md
+DEPLOY.md
+run.ps1
+NOTES.md

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row-between">
+  <h1>Monitors</h1>
+  <a class="btn primary" href="/monitors/new">+ Add monitor</a>
+</div>
+
+{% if request.query_params.get('test') == 'ok' %}
+  <p class="banner ok">Test notification sent.</p>
+{% elif request.query_params.get('test') == 'fail' %}
+  <p class="banner err">Sending failed — check environment variables and server logs.</p>
+{% endif %}
+
+{% if channels %}
+  <p class="muted">Notification channels: {{ channels|join(', ') }}</p>
+{% else %}
+  <p class="banner err">No notification channels configured. Set <code>TELEGRAM_BOT_TOKEN</code> and
+    <code>TELEGRAM_CHAT_ID</code> in <code>.env</code> and restart the server.</p>
+{% endif %}
+
+{% if not monitors %}
+  <p class="muted">No monitors yet. Add one, or run <code>python seed_afvictoria.py</code>
+    to create two ready-made monitors for TCF at Alliance Française Victoria.</p>
+{% endif %}
+
+<table class="grid">
+  <tr>
+    <th>Monitor</th><th>Mode</th><th>Interval</th>
+    <th>Last check</th><th>Found now</th><th></th>
+  </tr>
+  {% for m in monitors %}
+  <tr class="{{ 'disabled' if not m['enabled'] else '' }}">
+    <td>
+      <a href="/monitors/{{ m['id'] }}"><strong>{{ m['name'] }}</strong></a><br>
+      <span class="muted small">{{ m['url'] }}</span>
+      {% if m['last_ok'] == 0 %}<br><span class="err small">⚠ {{ m['last_error'] }}</span>{% endif %}
+    </td>
+    <td class="small">{{ m['mode'] }}</td>
+    <td class="small">{{ m['interval_seconds'] }} s</td>
+    <td class="small">{{ m['last_checked_at'] or '—' }}</td>
+    <td class="small">{{ m['last_found_count'] }}</td>
+    <td class="actions">
+      <form method="post" action="/monitors/{{ m['id'] }}/toggle" class="inline">
+        <button class="btn small" type="submit">{{ 'Pause' if m['enabled'] else 'Resume' }}</button>
+      </form>
+      <form method="post" action="/monitors/{{ m['id'] }}/check" class="inline">
+        <button class="btn small" type="submit">Check</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p class="muted small">
+  "Found now" is how many elements matched on the last check.
+  Notifications are sent only when a <strong>new</strong> element appears.
+</p>
+{% endblock %}

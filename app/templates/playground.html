@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Playground</h1>
+<p class="muted">Test a URL and expression without saving anything.</p>
+
+<form method="post" action="/playground" class="card">
+  <label>URL
+    <input name="url" required type="url" value="{{ form.get('url', '') }}">
+  </label>
+  <label>Mode
+    <select name="mode">
+      {% for key, description in modes.items() %}
+      <option value="{{ key }}" {{ 'selected' if form.get('mode') == key }}>{{ key }} — {{ description }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Expression
+    <textarea name="expression" rows="3">{{ form.get('expression', '') }}</textarea>
+  </label>
+  <label>Exclude regex
+    <input name="exclude_pattern" value="{{ form.get('exclude_pattern', '') }}">
+  </label>
+  <button class="btn primary" type="submit">Run</button>
+</form>
+
+{% if result %}
+  {% if result.ok %}
+    <p class="banner ok">HTTP {{ result.status_code }} in {{ result.duration_ms }} ms — elements
+      found: <strong>{{ result.slots|length }}</strong></p>
+    <ul class="slots">
+      {% for slot in result.slots %}<li><code>{{ slot }}</code></li>
+      {% else %}<li class="muted">Empty. For a "seat available" monitor this is the normal waiting state.</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="banner err">{{ result.error }}</p>
+  {% endif %}
+{% endif %}
+{% endblock %}
